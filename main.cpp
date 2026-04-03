@@ -12,8 +12,8 @@ typedef struct Pixel
 
 int main()
 {
-    const int screenWidth  = 800;
-    const int screenHeight = 450;
+    const int screenWidth  = 1600;
+    const int screenHeight = 900;
 
     int screenSize = screenWidth * screenHeight;
 
@@ -27,15 +27,17 @@ int main()
     int ix = 0, 
         iy = 0;
     
-    float x0 = 0, 
+    float x_start = -1.2, 
+          y_start = -1.5;
+
+    float dx = 0.0025,
+          dy = 0.0025;
+
+    float x = 0,
+          y = 0,
+          x0 = 0,
           y0 = 0;
 
-    float dx = 0.004,
-          dy = 0.004;
-
-    float x = x0,
-          y = y0;
-   
     float x2 = 0,
           y2 = 0,
           xy = 0;
@@ -45,12 +47,15 @@ int main()
         
     while (!WindowShouldClose())
     {
-        y0 = -1.f;
-
-        for (iy = 0; iy < 450; iy++, y0 += dy)
+        y0 = y_start;
+        if (IsKeyPressed(KEY_K)) y_start += 100 * dy;
+        if (IsKeyPressed(KEY_H)) x_start += 10 * dx;
+        if (IsKeyPressed(KEY_J)) y_start -= 10 * dy;
+        if (IsKeyPressed(KEY_L)) x_start -= 10 * dx;
+        for (iy = 0; iy < screenHeight; iy++, y0 += dy)
         {
-            x0 = -1.5;
-            for (ix = 0; ix < 800; ix++, x0 += dx)
+            x0 = x_start;
+            for (ix = 0; ix < screenWidth; ix++, x0 += dx)
             {
                 N = 0;
                 x = x0;
