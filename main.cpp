@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "raylib.h"
 
 #define SIZE_X 10
@@ -17,7 +18,7 @@ int main()
 
     int screenSize = screenWidth * screenHeight;
 
-    Pixel* arr_pixel = (Pixel*) calloc(screenSize, sizeof(Pixel));
+    Color* arr_pixel = (Color*) calloc(screenSize, sizeof(Pixel));
 
     const float r2max = 100;
     const unsigned char nmax  = 255; 
@@ -30,8 +31,8 @@ int main()
     float x_start = -1.2, 
           y_start = -1.5;
 
-    float dx = 0.0025,
-          dy = 0.0025;
+    float dx = 0.001,
+          dy = 0.001;
 
     float x = 0,
           y = 0,
@@ -41,17 +42,27 @@ int main()
     float x2 = 0,
           y2 = 0,
           xy = 0;
+    
+    Texture2D My_texture = {};
+    Image My_image = {};
+    My_image.data = arr_pixel;
+    My_image.width  = screenWidth;
+    My_image.height = screenHeight;
+    My_image.mipmaps = 1;
+    My_image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
     InitWindow(screenWidth, screenHeight, "hello");
     SetTargetFPS(60);
         
     while (!WindowShouldClose())
     {
+        clock_t start = clock();
+
         y0 = y_start;
-        if (IsKeyPressed(KEY_K)) y_start += 100 * dy;
-        if (IsKeyPressed(KEY_H)) x_start += 10 * dx;
-        if (IsKeyPressed(KEY_J)) y_start -= 10 * dy;
-        if (IsKeyPressed(KEY_L)) x_start -= 10 * dx;
+        if (IsKeyPressedRepeat(KEY_K)) y_start += 50 * dy;
+        if (IsKeyPressedRepeat(KEY_H)) x_start += 50 * dx;
+        if (IsKeyPressedRepeat(KEY_J)) y_start -= 50 * dy;
+        if (IsKeyPressedRepeat(KEY_L)) x_start -= 50 * dx;
         for (iy = 0; iy < screenHeight; iy++, y0 += dy)
         {
             x0 = x_start;
@@ -72,19 +83,21 @@ int main()
                     if (x2 + y2 > r2max)
                         break;
                 }
-                if (N != 255) printf("%d\n", N);
-                arr_pixel[ix + iy * screenWidth].vector = {(float) ix, (float) iy};
-                arr_pixel[ix + iy * screenWidth].color  = {N, N, N, 255};
+                // if (N != 255) printf("%d\n", N);
+                arr_pixel[ix + iy * screenWidth]  = {N, N, N, 255};
             }
         }
+        
+        clock_t end = clock();
+        double time = (double) (end - start) / CLOCKS_PER_SEC;
+        int fps     = (int) 1 / time;
+        printf("time = %f\n", time);
+        printf("fps = %d\n", fps);
 
         BeginDrawing();
             ClearBackground(RAYWHITE);
-
-            for (int i = 0; i < screenSize; i++)
-            {
-                DrawPixelV(arr_pixel[i].vector, arr_pixel[i].color);
-            }
+            My_texture = LoadTextureFromImage(My_image);
+            DrawTexture(My_texture, 0, 0, WHITE);
 
         EndDrawing();
     }
