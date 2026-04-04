@@ -3,14 +3,12 @@
 #include <time.h>
 #include "raylib.h"
 
-#define SIZE_X 10
-
 typedef struct Pixel
 {
     Vector2 vector;
     Color   color;
 } Pixel;
-
+// avbalsk
 int main()
 {
     const int screenWidth  = 1600;
@@ -59,10 +57,14 @@ int main()
         clock_t start = clock();
 
         y0 = y_start;
-        if (IsKeyPressedRepeat(KEY_K)) y_start += 50 * dy;
-        if (IsKeyPressedRepeat(KEY_H)) x_start += 50 * dx;
-        if (IsKeyPressedRepeat(KEY_J)) y_start -= 50 * dy;
-        if (IsKeyPressedRepeat(KEY_L)) x_start -= 50 * dx;
+        if (IsKeyPressedRepeat(KEY_J)) y_start += 50 * dy;
+        if (IsKeyPressedRepeat(KEY_L)) x_start += 50 * dx;
+        if (IsKeyPressedRepeat(KEY_K)) y_start -= 50 * dy;
+        if (IsKeyPressedRepeat(KEY_H)) x_start -= 50 * dx;
+
+        if (IsKeyPressed(KEY_Z)) dx += 0.0001, dy += 0.0001, x_start -= 800 * 0.0001, y_start -= 450 * 0.0001;
+        if (IsKeyPressed(KEY_X)) dx -= 0.0001, dy -= 0.0001, x_start += 800 * 0.0001, y_start += 450 * 0.0001;
+
         for (iy = 0; iy < screenHeight; iy++, y0 += dy)
         {
             x0 = x_start;
@@ -85,6 +87,7 @@ int main()
                 }
                 // if (N != 255) printf("%d\n", N);
                 arr_pixel[ix + iy * screenWidth]  = {N, N, N, 255};
+                if (ix == 800 && iy == 450) arr_pixel[ix + iy * screenWidth] = RED;
             }
         }
         
@@ -97,6 +100,7 @@ int main()
         BeginDrawing();
             ClearBackground(RAYWHITE);
             My_texture = LoadTextureFromImage(My_image);
+            //DrawPixel(800, 450, RED);
             DrawTexture(My_texture, 0, 0, WHITE);
 
         EndDrawing();
