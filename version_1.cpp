@@ -32,6 +32,9 @@ int main()
     float dx = 0.001,
           dy = 0.001;
 
+    float ddx = dx / 10,
+          ddy = dy / 10;
+
     float x = 0,
           y = 0,
           x0 = 0,
@@ -43,6 +46,7 @@ int main()
     
     Texture2D My_texture = {};
     Image My_image = {};
+
     My_image.data = arr_pixel;
     My_image.width  = screenWidth;
     My_image.height = screenHeight;
@@ -62,8 +66,8 @@ int main()
         if (IsKeyPressedRepeat(KEY_K)) y_start -= 50 * dy;
         if (IsKeyPressedRepeat(KEY_H)) x_start -= 50 * dx;
 
-        if (IsKeyPressed(KEY_Z)) dx += 0.0001, dy += 0.0001, x_start -= 800 * 0.0001, y_start -= 450 * 0.0001;
-        if (IsKeyPressed(KEY_X)) dx -= 0.0001, dy -= 0.0001, x_start += 800 * 0.0001, y_start += 450 * 0.0001;
+        if (IsKeyPressedRepeat(KEY_Z)) dx += ddx, dy += ddy, x_start -= screenWidth / 2 * ddx, y_start -= screenHeight / 2 * ddy;
+        if (IsKeyPressedRepeat(KEY_X)) dx -= ddx, dy -= ddy, x_start += screenWidth / 2 * ddy, y_start += screenHeight / 2 * ddy;
 
         for (iy = 0; iy < screenHeight; iy++, y0 += dy)
         {
@@ -98,9 +102,9 @@ int main()
         printf("fps = %d\n", fps);
 
         BeginDrawing();
+            
             ClearBackground(RAYWHITE);
             My_texture = LoadTextureFromImage(My_image);
-            //DrawPixel(800, 450, RED);
             DrawTexture(My_texture, 0, 0, WHITE);
 
         EndDrawing();
