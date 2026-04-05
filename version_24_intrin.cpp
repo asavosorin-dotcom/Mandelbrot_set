@@ -18,7 +18,7 @@ int main()
                         
     __m128 N = {0};
 
-    char check_N[4] = {0}; // после этой замены стало медленне на этапе замены массивов на векторы
+    __m128 check_N = {0}; // после этой замены стало медленне на этапе замены массивов на векторы
     char check_n = 0;
 
     int ix = 0, 
@@ -42,7 +42,7 @@ int main()
     __m128 X2 = {0},
            Y2 = {0},
            XY = {0};
-    
+ 
     Texture2D My_texture = {};
     Image My_image = {};
 
@@ -59,7 +59,7 @@ int main()
     {
         clock_t start = clock();
 
-        for (int i = 0; i < 4; i++) {Y0[i] = y_start;}
+        Y0 = _mm_set1_ps(y_start);
 
         if (IsKeyPressedRepeat(KEY_J)) y_start += 50 * dy;
         if (IsKeyPressedRepeat(KEY_L)) x_start += 50 * dx;
