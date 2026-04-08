@@ -16,7 +16,8 @@ int main()
     const float r2max = 100;
     const unsigned char nmax  = 255; 
                         
-    __m128 N = {0};
+    __m128 N = {0}, 
+           N_ITER = {0};
 
     __m128 check_N = {0}; // после этой замены стало медленне на этапе замены массивов на векторы
     char check_n = 0;
@@ -29,6 +30,13 @@ int main()
 
     float dx = 0.001,
           dy = 0.001;
+
+    __m128 DX = _mm_set1_ps(dx),
+           DY = _mm_set1_ps(dy);
+
+    __m128 NUM_SEQ = {0, 1, 2, 3},
+           DX_SEQ  = _mm_mul_ps(DX, NUM_SEQ), 
+           DY_SEQ  = _mm_mul_ps(DY, NUM_SEQ);
 
     float ddx = dx / 10,
           ddy = dy / 10;
@@ -43,6 +51,10 @@ int main()
            Y2 = {0},
            XY = {0};
  
+    __m128 R2 = {0},
+           R2_CMP = {0}, 
+           R2MAX = _mm_set1_ps(100);
+
     Texture2D My_texture = {};
     Image My_image = {};
 
@@ -71,56 +83,50 @@ int main()
 
         for (iy = 0; iy < screenHeight; iy++)
         {
-            for (int i = 0; i < 4; i++) {Y0[i] += dy;}
+            DY = _mm_set1_ps(dy);
+            Y0 = _mm_add_ps(Y0, DY);
 
-            for (int i = 0; i < 4; i++) {X0[i] = x_start + i * dx;}
+            DX = _mm_set1_ps(dx);
+            DX_SEQ = _mm_mul_ps(DX, NUM_SEQ);
+            X0 = _mm_set1_ps(x_start);
+            X0 = _mm_add_ps(X0, DX_SEQ);
 
             for (ix = 0; ix < screenWidth; ix += 4)
             {
-                for (int i = 0; i < 4; i++) {X0[i] += 4 * dx;}
+                X0 = _mm_add_ps(X0, _mm_mul_ps(DX, _mm_set1_ps(4)));
 
                 X = X0;
                 Y = Y0;
-                //for (int i = 0; i < 4; i++) {X[i] = X0[i];}
-                //for (int i = 0; i < 4; i++) {Y[i] = Y0[i];}
 
                 check_n = 0;
                 for (int i = 0; i < 4; i++) {check_N[i] = 0;}
                 for (int i = 0; i < 4; i++) {N[i] = 0;}
                 int n = 0;
 
+                N = _mm_set1_ps(0);
+
                 for (; n != nmax; n++) 
                 {
-                    for (int i = 0; i < 4; i++) {X2[i] = X[i] * X[i];}
-                    for (int i = 0; i < 4; i++) {Y2[i] = Y[i] * Y[i];}
-                    for (int i = 0; i < 4; i++) {XY[i] = X[i] * Y[i];}
+                    X2 = _mm_mul_ps(X, X);
+                    Y2 = _mm_mul_ps(Y, Y);
+                    XY = _mm_mul_ps(X, Y);
 
-                    for (int i = 0; i < 4; i++) {X[i] = X2[i] - Y2[i] + X0[i];}
-                    for (int i = 0; i < 4; i++) {Y[i] = XY[i] + XY[i] + Y0[i];}
+                    X = _mm_add_ps(_mm_sub_ps(X2, Y2), X0);
+                    Y = _mm_add_ps(_mm_add_ps(XY, XY), Y0);
+
+                    R2 = _mm_add_ps(X2, Y2);
+                    R2_CMP = _mm_cmpgt_ps(R2, R2MAX);
+                    check_n = _mm_movemask_ps(R2_CMP);
                     
-                    for (int i = 0; i < 4; i++) 
-                    {
-                        
-                        if (X2[i] + Y2[i] > r2max && check_N[i] == 0) 
-                        {
-                            N[i] = n;
-                            check_N[i] = 1; 
-                        }
-                    }
+                    N_ITER = _mm_set1_ps(n);
+                    N = _mm_or_ps(N, _mm_and_ps(N_ITER, _mm_and_ps(R2_CMP, _mm_cmpeq_ps(N, _mm_set1_ps(0)))));
 
-                    for (int i = 0; i < 4; i++) {if (check_N[i] == 1) check_n |= 1 << i;}
                     if (check_n == 0b1111)
                         break;
                 }
                 // if (N != 255) printf("%d\n", N);
-                if (n == 255)
-                {
-                    for (int i = 0; i < 4; i++) 
-                    {
-                        if (N[i] == 0) N[i] = 255;
-                    }
-                }
-                for (int i = 0; i < 4; i++) {arr_pixel[ix + i + iy * screenWidth] = {N[i], N[i], N[i], 255}; }
+
+                for (int i = 0; i < 4; i++) {arr_pixel[ix + i + iy * screenWidth] = {N[i] + 255, N[i] + 255, N[i] + 255, 255}; }
                 if (ix == 800 && iy == 450) arr_pixel[ix + iy * screenWidth] = RED;
             }
         }
