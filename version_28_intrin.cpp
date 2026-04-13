@@ -13,6 +13,8 @@ int main()
     FILE* lab_file = fopen("laba.csv", "a");
     fprintf(lab_file, "%s \n", __FILE__);
 
+    int* n_int = (int* ) calloc(8, sizeof(int));
+
     const int screenWidth  = 1600;
     const int screenHeight = 900;
 
@@ -22,8 +24,12 @@ int main()
 
     const float r2max = 100;
     const unsigned char nmax  = 255; 
-                        
+       
+    __m256i N_INT = {0};
+    //int N_INT[8] = {0};
+
     __m256 N = {0}, 
+           N_ZERO = {0},
            N_ITER = {0};
 
     int check_n = 0;
@@ -31,8 +37,8 @@ int main()
     int ix = 0, 
         iy = 0;
     
-    float x_start = -1.3, 
-          y_start = -0.3;
+    float x_start = -2.3, 
+          y_start = -0.5;
 
     float dx = 0.001,
           dy = 0.001;
@@ -129,8 +135,12 @@ int main()
                     check_n |= _mm256_movemask_ps(R2_CMP);
                     
                     N_ITER = _mm256_set1_ps(n);
-                    N = _mm256_or_ps(N, _mm256_and_ps(N_ITER, _mm256_and_ps(R2_CMP, _mm256_cmp_ps(N, _mm256_set1_ps(0), _CMP_EQ_OQ))));
-                   // struct timespec ts = {1, 50000000}; // 1.5 секунды
+                    //N = _mm256_or_ps(N, _mm256_and_ps(N_ITER, _mm256_and_ps(R2_CMP, N_ZERO));
+                    N_ZERO = _mm256_cmp_ps(N, _mm256_set1_ps(0), _CMP_EQ_OQ);
+                    N_ZERO = _mm256_and_ps(R2_CMP, N_ZERO);
+                    N_ZERO = _mm256_and_ps(N_ITER, N_ZERO);
+                    N = _mm256_or_ps(N, N_ZERO);
+                    // struct timespec ts = {1, 50000000}; // 1.5 секунды
                     //if (check_n != 0) nanosleep(&ts, NULL);
 //                    if (check_n != 0) sleep(1);
                     //printf("%d\n", check_n);
@@ -138,16 +148,25 @@ int main()
                         break;
                 }
                 // if (N != 255) printf("%d\n", N);
+                // arr_pixel[ix + iy * screenWidth] = {N};
+                N_INT = _mm256_cvttps_epi32(N);
+                _mm256_storeu_si256((__m256i* ) n_int, N_INT);
+                //int* n_int = (int* ) &N_INT;
+                
+                //for (int i = 0; i < 8; i++)
+                //{
+                 //   printf("%d ", n_int[i]); 
+                //}
 
-                for (int i = 0; i < 8; i++) {arr_pixel[ix + i + iy * screenWidth] = {N[i] + 255, N[i] + 255, N[i] + 255, 255}; }
+                for (int i = 0; i < 8; i++) {arr_pixel[ix + i + iy * screenWidth] = {n_int[i] + 255, n_int[i] + 255, n_int[i] + 255, 255}; }
                 if (ix == screenWidth / 2 && iy == screenHeight / 2) arr_pixel[ix + iy * screenWidth] = RED;
             }
         }
         
         unsigned long long int end = __rdtsc();
         counter++;
-        if ((100 < counter) && (counter < 1100)) fprintf(lab_file, "%ld\t", end - start);
-        if (counter < 1100) printf("%ld\n", counter);
+        if ((100 < counter) && (counter < 1100)) fprintf(lab_file, "%llu\t", end - start);
+        if (counter < 1100) printf("%d\n", counter);
         if (counter >= 1100) printf("END!!!\n");
 
         BeginDrawing();

@@ -4,7 +4,7 @@
 #include "raylib.h"
 #include <x86intrin.h>
 
-//#define DRAW
+// #define DRAW
 
 typedef struct Pixel
 {
@@ -118,6 +118,7 @@ int main()
 #ifdef DRAW
             
             ClearBackground(RAYWHITE);
+            DrawText(TextFormat("FPS: %i", GetFPS()), 10, 30, 20, LIME);
             My_texture = LoadTextureFromImage(My_image);
             DrawTexture(My_texture, 0, 0, WHITE);
 
